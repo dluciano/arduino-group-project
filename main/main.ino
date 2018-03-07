@@ -1,81 +1,91 @@
 #include <SoftwareSerial.h>
 #include <WiFiEsp.h>
 
-#define ESP_RX 3
-#define ESP_TX 2
-#define WIFI_PARAMS "StudentCom", ""
-char server[] = "134.220.4.152";
-
-SoftwareSerial espSerial(ESP_RX, ESP_TX);
-WiFiEspClient client; // WiFi client to be able to create TCP connections
-
+SoftwareSerial espSerial(3, 2);
+WiFiEspClient client;
 
 struct ConnMgr {
-  void setup(){}
+  void setup(){
+    // Start esp wifi and its serial interface
+    espSerial.begin(9600);
+    WiFi.init(&espSerial);  
+    connect();
+  }
+
+  void connect(){
+    Serial.println("Connecting to WiFi");
+    if (WiFi.status() != WL_NO_SHIELD) {      
+      while (WiFi.status() != WL_CONNECTED) {
+        WiFi.begin("StudentCom", "");
+      }
+    }
+    connected = WiFi.status() == WL_CONNECTED;
+  }
+
+  void get(String server, String path, int port = 80){
+    if(!connected){
+      Serial.println("The wifi is not connected. Trying to connect to wifi");
+      connect();
+      return;
+    }    
+    
+    if (!requestDone && client.connect(server.c_str(), port)) {
+        Serial.println("Connected to server");
+        
+        String getStr = String("GET " + path + " HTTP/1.1");
+        String host =  String("Host: " + server);        
+        
+        Serial.print("\nGET REQUEST: ");
+        Serial.println(getStr);
+        
+        Serial.print("\HOST REQUEST: ");
+        Serial.println(host);
+
+        client.println(getStr);
+        client.println(host);
+        client.println("Connection: close");
+        client.println();
+        requestDone = true;
+    }
+  }  
+
+  void loop(){
+    // if there are incoming bytes available
+    // from the server, read them and print them
+    while (requestDone && client.available()) {
+      char c = client.read();
+      Serial.write(c);
+    } 
+    // if the server's disconnected, stop the client
+    if (requestDone && !client.connected()) {
+      Serial.println();
+      Serial.println("Disconnecting from server...");
+      client.stop();    
+      Serial.println("Disconnected from server...");
+      requestDone = false;
+    }
+  }
+
+  bool connected = false;
+  bool requestDone = false;
 };
 
 ConnMgr conn;
 
-void printMac(){
-  byte mac[6];
-  WiFi.macAddress(mac);
-  Serial.print("MAC: ");
-  Serial.print(mac[5],HEX);
-  Serial.print(":");
-  Serial.print(mac[4],HEX);
-  Serial.print(":");
-  Serial.print(mac[3],HEX);
-  Serial.print(":");
-  Serial.print(mac[2],HEX);
-  Serial.print(":");
-  Serial.print(mac[1],HEX);
-  Serial.print(":");
-  Serial.println(mac[0],HEX);
-}
-
-void setup() {
- // Start serial
+void setup() { 
  Serial.begin(9600);
-
- // Start esp wifi and its serial interface
- espSerial.begin(9600);
- WiFi.init(&espSerial);
-
- // Check for presence of WiFi module
- if (WiFi.status() != WL_NO_SHIELD) {
-   // If WiFi module present, hang until connected to specified ssid
-   while (WiFi.status() != WL_CONNECTED) {
-     WiFi.begin(WIFI_PARAMS);
-   }
- }
-
-  if (client.connect(server, 80)) {
-    Serial.println("Connected to server");
-    // Make a HTTP request
-    client.println("GET /~1720203/test.php HTTP/1.1");
-    client.println("Host: 134.220.4.152");
-    client.println("Connection: close");
-    client.println();
-  }
-  printMac();
+ conn.setup();
 }
 
+#define  REFRESH_RATE 5000
+unsigned long long last = 0;
+unsigned long long prev = -REFRESH_RATE;
 
-bool dis = false;
 void loop() {
- // put your main code here, to run repeatedly:
- // if there are incoming bytes available
-  // from the server, read them and print them
-  while (client.available()) {
-    char c = client.read();
-    Serial.write(c);
-  } 
-  // if the server's disconnected, stop the client
-  if (!client.connected() && !dis) {
-    dis = true;
-    Serial.println();
-    Serial.println("Disconnecting from server...");
-    client.stop();    
-    Serial.println("Disconnected from server...");
+  last = millis();
+  if(last - prev >= REFRESH_RATE){
+    prev = last;
+    conn.get("134.220.4.152", "/~1720203/test.php");  
   }
+  conn.loop();
 }
