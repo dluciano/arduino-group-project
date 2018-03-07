@@ -1,8 +1,20 @@
 #include <SoftwareSerial.h>
 #include <WiFiEsp.h>
+#include <string.h>
 
 SoftwareSerial espSerial(3, 2);
 WiFiEspClient client;
+
+class Feedback{
+  public:
+  Feedback(int userId,  int oper){
+    this->userId = userId;
+    this->oper = oper;
+  }
+
+  int userId;
+  int oper;
+};
 
 struct HttpResponse {
   construct(String response){
@@ -10,6 +22,41 @@ struct HttpResponse {
     body = response.substring(x+4); //add 4 char, because from the last \n\r to the body there are 4 char (\n\r\n\r)
   }
   String body;
+
+  Feedback** asFeedback(){
+    if(body == "")
+      return NULL;
+    
+    int feedbacksCount = 1;    
+    for(int i = 0; i < body.length(); i++){      
+      if(body.charAt(i) == '|'){
+        feedbacksCount++;       
+      }
+    }    
+
+    char* feedbacksStr = strtok(body.c_str(), "|");    
+    char** fbs = new char*[feedbacksCount];
+    int i = 0;
+    while(feedbacksStr != NULL){
+      fbs[i] = feedbacksStr;
+      feedbacksStr = strtok(NULL, "|");
+      i++;
+    }
+    
+    Feedback** feedbacks = new Feedback*[feedbacksCount + 1];    
+    char *f = NULL;
+    for(int x = 0; x < i; x++){      
+      f = strtok(fbs[x], ":");
+      int userId = atoi(f);
+      f = strtok(NULL, ":");
+      int oper = atoi(f);
+      feedbacks[x] = new Feedback(userId, oper);      
+    }
+    //TODO: Delete the fbs variable    
+    feedbacks[feedbacksCount]  = NULL;
+
+    return feedbacks;
+  }
 };
 
 struct ConnMgr {
@@ -89,14 +136,22 @@ struct OperMgr{
   void setup(){
     pinMode(LED_PORT, HIGH);
   }
-  void loop(HttpResponse message){
-    // Serial.print("\n\nHTTP RESPONSE BODY:<<<: ");
-    // Serial.print(message.body.c_str());    
-    // Serial.println(" :>>>");
-    if(message.body == "1"){
-      digitalWrite(LED_PORT, HIGH);
-    }else{
-      digitalWrite(LED_PORT, LOW);
+  void loop(Feedback** f){
+    int i = 0;
+    
+    while(f[i] != NULL){
+      int o = (*f[i]).oper;
+      Serial.print("Operating operation: ");
+      Serial.println(o);
+      switch(o){        
+        case 1:{
+          digitalWrite(LED_PORT, HIGH);
+          delay(500);
+          digitalWrite(LED_PORT, LOW);  
+        }
+        break;
+      }
+      i++;
     }
   }
 };
@@ -115,20 +170,30 @@ void setup() {
  Serial.println("All Ready!");
 }
 
-#define  REFRESH_RATE 5000
+#define  REFRESH_RATE 6000
+#define ON_TIME 2000
 unsigned long long last = 0;
 unsigned long long prev = -REFRESH_RATE;
+unsigned long long prev2 = -ON_TIME;
 
 void loop() {
   last = millis();
   if(last - prev >= REFRESH_RATE){
     prev = last;
-    conn.get("134.220.4.152", "/~1720203/test.php");  
+    conn.get("https://groupdev.herokuapp.com", "/~1720362/test.php");  
   }
   String s = conn.loop();
-  if(s!= ""){
+  if(s != ""){
     HttpResponse response;
-    response.construct(s);
-    op.loop(response);
+    response.construct(s);    
+    Feedback** fbs = response.asFeedback();
+    op.loop(fbs);
+
+    int i = 0;
+    while(fbs[i] != NULL){
+      delete fbs[i];
+      i++;
+    }
+    delete [] fbs;
   }
 }
