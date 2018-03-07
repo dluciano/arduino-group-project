@@ -71,7 +71,7 @@ struct ConnMgr {
     Serial.println("Connecting to WiFi");
     if (WiFi.status() != WL_NO_SHIELD) {      
       while (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin("StudentCom", "");
+        WiFi.begin("LuisSaul-HS", "pufx1142");
       }
     }
     connected = WiFi.status() == WL_CONNECTED;
@@ -144,9 +144,9 @@ struct OperMgr{
       Serial.print("Operating operation: ");
       Serial.println(o);
       switch(o){        
-        case 1:{
+        case 0:{
           digitalWrite(LED_PORT, HIGH);
-          delay(500);
+          delay(1000);
           digitalWrite(LED_PORT, LOW);  
         }
         break;
@@ -170,17 +170,15 @@ void setup() {
  Serial.println("All Ready!");
 }
 
-#define  REFRESH_RATE 6000
-#define ON_TIME 2000
+#define  REFRESH_RATE 2000
 unsigned long long last = 0;
 unsigned long long prev = -REFRESH_RATE;
-unsigned long long prev2 = -ON_TIME;
 
 void loop() {
   last = millis();
   if(last - prev >= REFRESH_RATE){
     prev = last;
-    conn.get("https://groupdev.herokuapp.com", "/~1720362/test.php");  
+    conn.get("groupdev.herokuapp.com", "/rooms/1/feedbacks", 80);  
   }
   String s = conn.loop();
   if(s != ""){
