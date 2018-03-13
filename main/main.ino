@@ -1,9 +1,13 @@
+#include <LiquidCrystal.h>
+
 #include <SoftwareSerial.h>
 #include <WiFiEsp.h>
 #include <string.h>
 
 SoftwareSerial espSerial(3, 2);
 WiFiEspClient client;
+
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 class Feedback{
   public:
@@ -71,7 +75,8 @@ struct ConnMgr {
     Serial.println("Connecting to WiFi");
     if (WiFi.status() != WL_NO_SHIELD) {      
       while (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin("LuisSaul-HS", "pufx1142");
+        //WiFi.begin("LuisSaul-HS", "pufx1142");
+        WiFi.begin("StudentCom", "");
       }
     }
     connected = WiFi.status() == WL_CONNECTED;
@@ -161,6 +166,12 @@ OperMgr op;
 
 void setup() { 
  Serial.begin(9600);
+ 
+ Serial.println("Configuring LCD");
+ lcd.begin(16, 2);
+ // Print a message to the LCD.
+ lcd.print("hello, world!");
+ 
  Serial.println("Configuring WIFI");
  conn.setup();
  Serial.println("WIFI Configured");
@@ -194,4 +205,10 @@ void loop() {
     }
     delete [] fbs;
   }
+  
+  // set the cursor to column 0, line 1
+  // (note: line 1 is the second row, since counting begins with 0):
+  lcd.setCursor(0, 1);
+  // print the number of seconds since reset:
+  lcd.print(millis() / 1000);
 }
