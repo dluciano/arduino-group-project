@@ -7,7 +7,26 @@
 SoftwareSerial espSerial(3, 2);
 WiFiEspClient client;
 
-LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+class LCDMgr{
+  private:
+  LiquidCrystal lcd = LiquidCrystal(8, 9, 4, 5, 6, 7);
+  
+  public:
+  void setup(){
+    Serial.println("Configuring LCD");
+    lcd.begin(16, 2);        
+    Serial.println("LCD Configured");
+  }
+
+  void log(String s){
+    Serial.println(s);
+    lcd.setCursor(0, 1);    
+    lcd.print("");
+    lcd.print(s);
+  }
+};
+
+LCDMgr mLcd;
 
 class Feedback{
   public:
@@ -63,31 +82,37 @@ struct HttpResponse {
   }
 };
 
-struct ConnMgr {
+class ConnMgr {  
+  public:
   void setup(){
     // Start esp wifi and its serial interface
+    mLcd.log("Configuring WIFI");
     espSerial.begin(9600);
     WiFi.init(&espSerial);  
     connect();
+    mLcd.log("WIFI Configured");
   }
 
-  void connect(){
-    Serial.println("Connecting to WiFi");
+  void connect(){    
+    mLcd.log("Connecting to WiFi");    
     if (WiFi.status() != WL_NO_SHIELD) {      
       while (WiFi.status() != WL_CONNECTED) {
         //WiFi.begin("LuisSaul-HS", "pufx1142");
         WiFi.begin("StudentCom", "");
       }
     }
+    if(WiFi.status() == WL_CONNECTED)
+      mLcd.log("Ready.  Waiting requests...");
     connected = WiFi.status() == WL_CONNECTED;
   }
 
   void get(String server, String path, int port = 80){
-    if(!connected){
-      Serial.println("The wifi is not connected. Trying to connect to wifi");
+    if(WiFi.status() != WL_CONNECTED){
+      connected = false;
+      mLcd.log("The wifi is not connected. Trying to connect to wifi");
       connect();
       return;
-    }    
+    }
     
     if (!requestDone && client.connect(server.c_str(), port)) {
         Serial.println("Connected to server");
@@ -95,10 +120,10 @@ struct ConnMgr {
         String getStr = String("GET " + path + " HTTP/1.1");
         String host =  String("Host: " + server);        
         
-        Serial.print("\nGET REQUEST: ");
+        Serial.println("\nGET REQUEST: ");
         Serial.println(getStr);
         
-        Serial.print("\HOST REQUEST: ");
+        Serial.println("\HOST REQUEST: ");
         Serial.println(host);
 
         client.println(getStr);
@@ -119,9 +144,9 @@ struct ConnMgr {
     if (requestDone && !client.connected()) {
       Serial.println();
       Serial.println("Disconnecting from server...");
-      client.stop();    
+      client.stop();
       Serial.println("Disconnected from server...");
-      requestDone = false;
+      requestDone = false;      
       Serial.print("\nMessage:\n");
       Serial.println(msg);
       String aux = String(msg);
@@ -139,7 +164,9 @@ struct ConnMgr {
 #define LED_PORT 13
 struct OperMgr{
   void setup(){
+    mLcd.log("Configuring Sensors and Components");
     pinMode(LED_PORT, HIGH);
+    mLcd.log("Sensors Configured");
   }
   void loop(Feedback** f){
     int i = 0;
@@ -166,19 +193,9 @@ OperMgr op;
 
 void setup() { 
  Serial.begin(9600);
- 
- Serial.println("Configuring LCD");
- lcd.begin(16, 2);
- // Print a message to the LCD.
- lcd.print("hello, world!");
- 
- Serial.println("Configuring WIFI");
- conn.setup();
- Serial.println("WIFI Configured");
-
- Serial.println("Configuring Sensors and Components");
+ conn.setup(); 
  op.setup();
- Serial.println("All Ready!");
+ mLcd.log("Ready.  Waiting requests...");
 }
 
 #define  REFRESH_RATE 2000
@@ -205,10 +222,4 @@ void loop() {
     }
     delete [] fbs;
   }
-  
-  // set the cursor to column 0, line 1
-  // (note: line 1 is the second row, since counting begins with 0):
-  lcd.setCursor(0, 1);
-  // print the number of seconds since reset:
-  lcd.print(millis() / 1000);
 }
