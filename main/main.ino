@@ -14,15 +14,24 @@ class LCDMgr{
   public:
   void setup(){
     Serial.println("Configuring LCD");
-    lcd.begin(16, 2);        
+    lcd.begin(16, 2);
     Serial.println("LCD Configured");
   }
 
-  void log(String s){
-    Serial.println(s);
+  void log(String s1, String s2 = "", bool autoscroll = false){
+    Serial.println(s1);
+    Serial.println(s2);
+    if(autoscroll)
+      lcd.autoscroll();
+    else
+      lcd.noAutoscroll();
+    lcd.clear();    
     lcd.setCursor(0, 1);    
-    lcd.print("");
-    lcd.print(s);
+    lcd.print(s2);
+    
+    lcd.setCursor(0, 0);    
+    lcd.print(s1);    
+    
   }
 };
 
@@ -94,7 +103,7 @@ class ConnMgr {
   }
 
   void connect(){    
-    mLcd.log("Connecting to WiFi");    
+    mLcd.log("Connecting to", "WiFi...", false);    
     if (WiFi.status() != WL_NO_SHIELD) {      
       while (WiFi.status() != WL_CONNECTED) {
         //WiFi.begin("LuisSaul-HS", "pufx1142");
@@ -102,14 +111,14 @@ class ConnMgr {
       }
     }
     if(WiFi.status() == WL_CONNECTED)
-      mLcd.log("Ready.  Waiting requests...");
+      mLcd.log("Ready. Waiting", "", false);
     connected = WiFi.status() == WL_CONNECTED;
   }
 
   void get(String server, String path, int port = 80){
     if(WiFi.status() != WL_CONNECTED){
       connected = false;
-      mLcd.log("The wifi is not connected. Trying to connect to wifi");
+      mLcd.log("Reconnect Wifi!!", "", false);
       connect();
       return;
     }
@@ -195,7 +204,7 @@ void setup() {
  Serial.begin(9600);
  conn.setup(); 
  op.setup();
- mLcd.log("Ready.  Waiting requests...");
+ mLcd.log("Ready. Waiting");
 }
 
 #define  REFRESH_RATE 2000
