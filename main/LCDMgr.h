@@ -12,3 +12,7 @@ class LCDMgr{
   void setup();
   void log(String s1, String s2 = "", bool autoscroll = false);
 };
+
+namespace openday{
+    LCDMgr mLcd;
+}
