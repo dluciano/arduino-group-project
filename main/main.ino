@@ -2,22 +2,13 @@
 #include <string.h>
 #include <SoftwareSerial.h>
 #include "LCDMgr.h"
+#include "Feedback.h"
 
 SoftwareSerial espSerial(3, 2);
 WiFiEspClient client;
 
 LCDMgr mLcd;
 
-class Feedback{
-  public:
-  Feedback(int userId,  int oper){
-    this->userId = userId;
-    this->oper = oper;
-  }
-
-  int userId;
-  int oper;
-};
 
 struct HttpResponse {
   construct(String response){
