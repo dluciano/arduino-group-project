@@ -1,39 +1,10 @@
-#include <LiquidCrystal.h>
-
-#include <SoftwareSerial.h>
 #include <WiFiEsp.h>
 #include <string.h>
+#include <SoftwareSerial.h>
+#include "LCDMgr.h"
 
 SoftwareSerial espSerial(3, 2);
 WiFiEspClient client;
-
-class LCDMgr{
-  private:
-  LiquidCrystal lcd = LiquidCrystal(8, 9, 4, 5, 6, 7);
-  
-  public:
-  void setup(){
-    Serial.println("Configuring LCD");
-    lcd.begin(16, 2);
-    Serial.println("LCD Configured");
-  }
-
-  void log(String s1, String s2 = "", bool autoscroll = false){
-    Serial.println(s1);
-    Serial.println(s2);
-    if(autoscroll)
-      lcd.autoscroll();
-    else
-      lcd.noAutoscroll();
-    lcd.clear();    
-    lcd.setCursor(0, 1);    
-    lcd.print(s2);
-    
-    lcd.setCursor(0, 0);    
-    lcd.print(s1);    
-    
-  }
-};
 
 LCDMgr mLcd;
 
