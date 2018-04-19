@@ -1,6 +1,6 @@
 #include "Feedback.h" 
  
-Feedback::Feedback(int userId,  int oper){
+Feedback::Feedback(int userId,  char* oper){
     this->userId = userId;
     this->oper = oper;
 }
