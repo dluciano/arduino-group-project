@@ -4,33 +4,7 @@
 #include "Feedback.h"
 #include "HttpResponse.h"
 #include "ConnMgr.h"
-
-#define LED_PORT 13
-struct OperMgr{
-  void setup(){
-    mLcd.log("Configuring Sensors and Components");
-    pinMode(LED_PORT, HIGH);
-    mLcd.log("Sensors Configured");
-  }
-  void loop(Feedback** f){
-    int i = 0;
-    
-    while(f[i] != NULL){
-      int o = (*f[i]).oper;
-      Serial.print("Operating operation: ");
-      Serial.println(o);
-      switch(o){        
-        case 0:{
-          digitalWrite(LED_PORT, HIGH);
-          delay(1000);
-          digitalWrite(LED_PORT, LOW);  
-        }
-        break;
-      }
-      i++;
-    }
-  }
-};
+#include "OperMgr.h"
 
 ConnMgr conn;
 OperMgr op;
