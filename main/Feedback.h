@@ -4,8 +4,8 @@
 
 class Feedback{
   public:
-  Feedback(int userId,  int oper);
+  Feedback(int userId,  char* oper);
 
   int userId;
-  int oper;
+  char* oper;
 };

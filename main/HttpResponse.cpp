@@ -28,12 +28,12 @@ Feedback** HttpResponse::asFeedback(){
     
     Feedback** feedbacks = new Feedback*[feedbacksCount + 1];    
     char *f = NULL;
+    
     for(int x = 0; x < i; x++){      
       f = strtok(fbs[x], ":");
       int userId = atoi(f);
-      f = strtok(NULL, ":");
-      int oper = atoi(f);
-      feedbacks[x] = new Feedback(userId, oper);      
+      char *msg = strtok(NULL, ":");      
+      feedbacks[x] = new Feedback(userId, msg);      
     }
     //TODO: Delete the fbs variable    
     feedbacks[feedbacksCount]  = NULL;
