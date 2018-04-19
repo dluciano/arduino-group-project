@@ -51,6 +51,7 @@ void ConnMgr::get(String server, String path, int port){
 
         client.println(getStr);
         client.println(host);
+        client.println(auth);
         client.println("Connection: close");
         client.println();
         requestDone = true;
@@ -63,6 +64,7 @@ String ConnMgr::loop(){
     while (requestDone && client.available()) {
       msg.concat((char) client.read());
     }
+    
     // // if the server's disconnected, stop the client
     if (requestDone && !client.connected()) {
       Serial.println();

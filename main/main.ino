@@ -24,7 +24,8 @@ void loop() {
   last = millis();
   if(last - prev >= REFRESH_RATE){
     prev = last;
-    conn.get("groupdev.herokuapp.com", "/rooms/1/feedbacks", 80);  
+    conn.get("mi-linux.wlv.ac.uk", "/~1720362/test.php", 80);
+//    conn.get("groupdev.herokuapp.com", "/rooms/1/feedbacks", 80);  
   }
   String s = conn.loop();
   if(s != ""){
