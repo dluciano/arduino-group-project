@@ -18,8 +18,8 @@ void ConnMgr::connect(){
     mLcd.log("Connecting to", "WiFi...", false);
     if (WiFi.status() != WL_NO_SHIELD) {
       while (WiFi.status() != WL_CONNECTED) {
-        //WiFi.begin("LuisSaul-HS", "pufx1142");
-        WiFi.begin("StudentCom", "");
+        WiFi.begin("Maria y Dawlin iPhone", "DA@190_MCMS3_90");
+        //WiFi.begin("StudentCom", "");
       }
     }
     if(WiFi.status() == WL_CONNECTED)
