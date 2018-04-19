@@ -29,9 +29,8 @@ void loop() {
   }
   String s = conn.loop();
   if(s != ""){
-    HttpResponse response(s);      
-    Feedback** fbs = response.asFeedback();
-    op.loop(fbs);
+    Feedback** fbs = Feedback::asFeedback(s);
+    //op.loop(fbs);
 
     int i = 0;
     while(fbs[i] != NULL){

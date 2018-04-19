@@ -18,8 +18,8 @@ void ConnMgr::connect(){
     mLcd.log("Connecting to", "WiFi...", false);
     if (WiFi.status() != WL_NO_SHIELD) {
       while (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin("Maria y Dawlin iPhone", "DA@190_MCMS3_90");
-        //WiFi.begin("StudentCom", "");
+        //WiFi.begin("Maria y Dawlin iPhone", "DA@190_MCMS3_90");
+        WiFi.begin("StudentCom", "");
       }
     }
     if(WiFi.status() == WL_CONNECTED)
@@ -74,7 +74,7 @@ String ConnMgr::loop(){
       requestDone = false;
       Serial.print("\nMessage:\n");
       Serial.println(msg);
-      String aux = String(msg);
+      String aux = msg;
       msg = "";
       return aux;
     }
