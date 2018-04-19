@@ -13,6 +13,4 @@ class LCDMgr{
   void log(String s1, String s2 = "", bool autoscroll = false);
 };
 
-namespace openday{
-    LCDMgr mLcd;
-}
+extern LCDMgr mLcd;

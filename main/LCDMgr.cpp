@@ -6,6 +6,7 @@
 #endif
 #include <SoftwareSerial.h>
 
+LCDMgr mLcd = LCDMgr();
 
 void LCDMgr::setup() {
     Serial.println("Configuring LCD");

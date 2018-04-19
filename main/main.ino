@@ -5,8 +5,6 @@
 #include "HttpResponse.h"
 #include "ConnMgr.h"
 
-using namespace openday;
-
 #define LED_PORT 13
 struct OperMgr{
   void setup(){

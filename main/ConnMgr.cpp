@@ -5,8 +5,6 @@
 SoftwareSerial espSerial(3, 2);
 WiFiEspClient client;
 
-using namespace openday;
-
 void ConnMgr::setup(){
     // Start esp wifi and its serial interface
     mLcd.log("Configuring WIFI");
