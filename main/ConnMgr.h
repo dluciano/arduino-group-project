@@ -12,11 +12,10 @@ class ConnMgr {
   public:
   void setup();
   void connect();
-  void get(String server, String path, int port = 80);
-  String loop();
+  void get(char *server, char *path, int port = 80);
+  char* loop();
 
   private:
   bool connected = false;
   bool requestDone = false;
-  String msg;
 };
