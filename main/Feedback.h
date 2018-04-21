@@ -12,7 +12,7 @@ class Feedback{
   public:
   Feedback(int userId,  char* oper);
 
-  static Feedback** asFeedback(String response);
+  static Feedback** asFeedback(char *body);
 
   int userId;
   char* oper;

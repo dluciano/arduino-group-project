@@ -8,52 +8,54 @@ Feedback::Feedback(int userId,  char* oper){
 }
 
 
-Feedback** Feedback::asFeedback(String response){
-    if(response == "")
+Feedback** Feedback::asFeedback(char *body){
+    if(strlen(body) <= 0)
         return NULL;
+
+    char* cBody = new char[strlen(body) + 1];
+    strcpy(cBody, body);
 
     int feedbacksCount = 1;
 
-    String body = String("SOBRENATURAL PROGRAMMING"); 
-    //int x = body.indexOf("\n\r") - 1;  
-    //int index = response - strchr(response, '\r');
-    // Serial.println(response[index + 1]);
-    //body = body.substring(x+4); //add 4 char, because from the last \n\r to the body there are 4 char (\n\r\n\r)
+    for(int i = 0; i < strlen(cBody); i++) {
+        if(cBody[i] == '|') {
+            feedbacksCount++;
+        }
+    }
 
-    // for(int i = 0; i < body.length(); i++){      
-    //     if(body.charAt(i) == '|'){
-    //         feedbacksCount++;       
-    //     }
-    // }    
-    Serial.println("\n\n\nOK 1");
-    Serial.println(response);
-    Serial.println("\n\n\n");
+    char *saveptr1, *saveptr2;
+    char* feedbacksStr = strtok_r(cBody, "|", &saveptr1);
+    char** fbs = new char*[feedbacksCount + 1];
 
+    int i = 0;
+    while(feedbacksStr != NULL){
+        fbs[i] = feedbacksStr;
+        feedbacksStr = strtok_r(NULL, "|", &saveptr1);
+        i++;
+    }
+    fbs[feedbacksCount] = NULL;
 
-    Serial.println("\n\n\nOK 22222->");
-    Serial.println(body);
-    Serial.println("\n\n\n");
-    //char* feedbacksStr = strtok(body.c_str(), "|"); 
-    //char** fbs = new char*[feedbacksCount];
-    
-    // int i = 0;
-    // while(feedbacksStr != NULL){
-    //     fbs[i] = feedbacksStr;
-    //     feedbacksStr = strtok(NULL, "|");
-    //     i++;
-    // }
+    Feedback** feedbacks = new Feedback*[feedbacksCount + 1];    
+    char *f = NULL;
 
-    //Feedback** feedbacks = new Feedback*[feedbacksCount + 1];    
-    // char *f = NULL;
+    for(int x = 0; x < i; x++) {
+        f = strtok_r(fbs[x], ":", &saveptr2);
+        int userId = atoi(f);
+        char *msg = strtok_r(NULL, ":", &saveptr2);
+        feedbacks[x] = new Feedback(userId, msg);
+    }
 
-    // for(int x = 0; x < i; x++){      
-    //     f = strtok(fbs[x], ":");
-    //     int userId = atoi(f);
-    //     char *msg = strtok(NULL, ":");          
-    //     feedbacks[x] = new Feedback(userId, msg);      
-    // }
-    // //TODO: Delete the fbs variable    
-    // feedbacks[feedbacksCount]  = NULL;
+    // Delete the fbs variable from memory
+    i = 0;
+    while(fbs[i] != NULL) {
+      fbs[i][0] = '\0';
+      i++;
+    }
+    delete [] fbs;
 
-    return NULL; //feedbacks
+    // Delete the cBody variable from memory
+    delete [] cBody;
+
+    feedbacks[feedbacksCount] = NULL;
+    return feedbacks; //feedbacks
 }
