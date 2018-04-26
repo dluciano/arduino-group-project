@@ -27,4 +27,5 @@ void OperMgr::loop(Feedback** f){
       delay(1000);
       i++;
     }
+    mLcd.log(F("Ready. Waiting"), F(""), false);
 }

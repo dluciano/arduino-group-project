@@ -5,17 +5,24 @@
 SoftwareSerial espSerial(3, 2);
 WiFiEspClient client;
 
-// "Maria y Dawlin iPhone", "DA@190_MCMS3_90"
+// "Maria y Dawlin iPhone", "DA@190_MCMS3_90", 22, 16
+// "StudentCom" , "", 16, 0
 const char WIFI_SSID[] PROGMEM = "StudentCom";
 const char WIFI_PASS[] PROGMEM = "";
+
+const int WIFI_SSID_LENGTH = 16;
+const int WIFI_PASS_ILENGTH = 0;
 
 const char HTTP_METHOD[]    PROGMEM = "GET ";
 const char HTTP_VERSION[]   PROGMEM = " HTTP/1.1";
 const char HTTP_HOST_LBL[]  PROGMEM = "Host: ";
 
+const char BODY_PREFIX[] PROGMEM = "FB_X_R => ";
+
 const char* const WIFI[] PROGMEM = { WIFI_SSID, WIFI_PASS };
 const char* const HTTP[] PROGMEM = { HTTP_METHOD, HTTP_VERSION, HTTP_HOST_LBL };
 
+const char* const CONFIG[] PROGMEM = { BODY_PREFIX };
 
 void ConnMgr::setup(){
     // Start esp wifi and its serial interface
@@ -27,13 +34,13 @@ void ConnMgr::setup(){
 }
 
 void ConnMgr::connect() {
-    char ssidBuffer[22];
-    char passBuffer[15];
+    char ssidBuffer[WIFI_SSID_LENGTH];
+    char passBuffer[WIFI_PASS_ILENGTH];
 
     strcpy_P(ssidBuffer, (char*) pgm_read_word( &WIFI[0] ));
     strcpy_P(passBuffer, (char*) pgm_read_word( &WIFI[1] ));
 
-    mLcd.log(F("Connecting to"), F("WiFi..."), false);
+    mLcd.log(F("Connecting WIFI"));
     if (WiFi.status() != WL_NO_SHIELD) {
       while (WiFi.status() != WL_CONNECTED) {
         WiFi.begin(ssidBuffer, passBuffer);
@@ -96,18 +103,29 @@ void ConnMgr::get(char *server, char *path, int port){
 }
 
 char* ConnMgr::loop() {
+    char bodyPreffix[11];
+    strcpy_P(bodyPreffix, (char*) pgm_read_word( &CONFIG[0] ));
+    bodyPreffix[10] = '\0';
+
     String line = "";
     char currentChar;
+
+    bool gotTheLine = false;
 
     // if there are incoming bytes available
     // from the server, read them and print them
     while (requestDone && client.available()) {
       currentChar = (char) client.read();
- 
       if (currentChar == '\n') {
-        line = "";
+        if (line.indexOf(bodyPreffix) > -1) {          
+          gotTheLine = true;
+        } else {
+          line = "";
+        }
       } else if (currentChar != '\r') {
-        line.concat(currentChar);
+        if (!gotTheLine) {
+          line.concat(currentChar);
+        }
       }
     }
 
@@ -120,18 +138,23 @@ char* ConnMgr::loop() {
       requestDone = false;
     }
 
+    
     const char *cLine = line.c_str();
-    if (strlen(cLine) > 0) {
-      char *ret = (char*) malloc(strlen(cLine) + 1);
+    if (gotTheLine && strlen(cLine) > 0) {
+      char *ret = (char*) malloc((strlen(cLine) - 10 + 1));
       if (!ret) {
         return NULL;
       }
-
-      for (int i = 0; i < strlen(cLine); i++) {
-        ret[i] = cLine[i];
+      
+      for (int i = 10; i < strlen(cLine); i++) {
+        ret[i - 10] = cLine[i];        
       }
 
-      ret[strlen(cLine)] = '\0';
+      ret[strlen(cLine) - 10] = '\0';
+
+      Serial.print(F("ret::: "));
+      Serial.println(line);
+
       return ret;
     }
 
