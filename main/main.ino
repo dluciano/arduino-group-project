@@ -9,7 +9,7 @@
 #define  REFRESH_RATE 2000
 
 const char SERVER_HOST[] PROGMEM = "groupdev.herokuapp.com"; // "groupdev.herokuapp.com" "mi-linux.wlv.ac.uk"
-const char SERVER_PATH[] PROGMEM = "/rooms/1/feedbacks"; // "/rooms/1/feedbacks" "/~1720362/test.php"
+const char SERVER_PATH[] PROGMEM = "/rooms/feedbacks"; // "/rooms/1/feedbacks" "/~1720362/test.php"
 
 const char * const ENVIRONMENT [] PROGMEM = { SERVER_HOST, SERVER_PATH };
 

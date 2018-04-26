@@ -5,21 +5,20 @@
 SoftwareSerial espSerial(3, 2);
 WiFiEspClient client;
 
-// "Maria y Dawlin iPhone", "DA@190_MCMS3_90" ssid_length: 22 - pass lenght: 15
-// StudentCom - ssid_length: 11 passBuffer: 0
-const int WIFI_SSID_LENGHT PROGMEM = 11;
-const int WIFI_PASS_LENGHT PROGMEM = 1;
-
-const char WIFI_SSID[] PROGMEM = "StudentCom";
-const char WIFI_PASS[] PROGMEM = "";
+// "Maria y Dawlin iPhone", "DA@190_MCMS3_90"
+const char WIFI_SSID[] PROGMEM = "Maria y Dawlin iPhone";
+const char WIFI_PASS[] PROGMEM = "DA@190_MCMS3_90";
 
 const char HTTP_METHOD[]    PROGMEM = "GET ";
 const char HTTP_VERSION[]   PROGMEM = " HTTP/1.1";
 const char HTTP_HOST_LBL[]  PROGMEM = "Host: ";
 
+const char BODY_PREFIX[] PROGMEM = "FB_X_R => ";
+
 const char* const WIFI[] PROGMEM = { WIFI_SSID, WIFI_PASS };
 const char* const HTTP[] PROGMEM = { HTTP_METHOD, HTTP_VERSION, HTTP_HOST_LBL };
 
+const char* const CONFIG[] PROGMEM = { BODY_PREFIX };
 
 void ConnMgr::setup(){
     // Start esp wifi and its serial interface
@@ -31,8 +30,8 @@ void ConnMgr::setup(){
 }
 
 void ConnMgr::connect() {
-    char ssidBuffer[WIFI_SSID_LENGHT];
-    char passBuffer[WIFI_PASS_LENGHT];
+    char ssidBuffer[22];
+    char passBuffer[16];
 
     strcpy_P(ssidBuffer, (char*) pgm_read_word( &WIFI[0] ));
     strcpy_P(passBuffer, (char*) pgm_read_word( &WIFI[1] ));
@@ -99,9 +98,6 @@ void ConnMgr::get(char *server, char *path, int port){
     }
 }
 
-const char BODY_PREFIX[] PROGMEM = "FB_X_R => ";
-const char* const CONFIG[] PROGMEM = { BODY_PREFIX };
-
 char* ConnMgr::loop() {
     char bodyPreffix[11];
     strcpy_P(bodyPreffix, (char*) pgm_read_word( &CONFIG[0] ));
@@ -110,19 +106,25 @@ char* ConnMgr::loop() {
     String line = "";
     char currentChar;
 
+    bool gotTheLine = false;
+
     // if there are incoming bytes available
     // from the server, read them and print them
     while (requestDone && client.available()) {
       currentChar = (char) client.read();
- 
       if (currentChar == '\n') {
         if (line.indexOf(bodyPreffix) > -1) {
-          break;
-        }
+          Serial.print(F("LINE::: "));
+          Serial.println(line);
 
-        line = "";
+          gotTheLine = true;
+        } else {
+          line = "";
+        }
       } else if (currentChar != '\r') {
-        line.concat(currentChar);
+        if (!gotTheLine) {
+          line.concat(currentChar);
+        }
       }
     }
 
@@ -137,8 +139,8 @@ char* ConnMgr::loop() {
 
     
     const char *cLine = line.c_str();
-    if (line.indexOf(bodyPreffix) > -1 && strlen(cLine) > 0) {
-      char *ret = (char) malloc(strlen(cLine) - 10 + 1);
+    if (gotTheLine && strlen(cLine) > 0) {
+      char *ret = (char*) malloc(strlen(cLine) - 10 + 1);
       if (!ret) {
         return NULL;
       }
@@ -153,35 +155,3 @@ char* ConnMgr::loop() {
 
     return NULL;
 }
-
-// char* ConnMgr::loop() {
-//     // if there are incoming bytes available
-//     // from the server, read them and print them
-//     while (requestDone && client.available()) {      
-//       msg.concat((char) client.read());
-//     }
-    
-//     // // if the server's disconnected, stop the client
-//     if (requestDone && !client.connected()) {      
-//       Serial.println(F("Disconnecting from server..."));
-//       client.stop();
-//       Serial.println(F("Disconnected from server..."));
-//       Serial.println("-------");
-//       requestDone = false;     
-
-//       String body = msg.substring(msg.indexOf("\n\r\n") + 3);     
-//       int bLength = body.length();
-//       msg = "";
-
-//       char* ret = new char[bLength + 1];
-//       strcpy(ret, body.c_str());
-
-//       Serial.println("BODY CONTENT: ");
-//       Serial.print(ret);
-//       Serial.println("-----------");
-
-//       return ret;          
-//     }
-
-//     return NULL;
-// }
