@@ -10,10 +10,12 @@
 
 class Feedback{
   public:
-  Feedback(int userId,  char* oper);
+  Feedback(char* username,  char* oper);
 
   static Feedback** asFeedback(char *body);
 
-  int userId;
+  char* username;
   char* oper;
+
+  ~Feedback();
 };

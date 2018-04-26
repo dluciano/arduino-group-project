@@ -2,8 +2,8 @@
  #include <SoftwareSerial.h>
  #include <string.h>
 
-Feedback::Feedback(int userId,  char* oper){
-    this->userId = userId;
+Feedback::Feedback(char* username, char* oper){
+    this->username = username;
     this->oper = oper;
 }
 
@@ -39,10 +39,12 @@ Feedback** Feedback::asFeedback(char *body){
     char *f = NULL;
 
     for(int x = 0; x < i; x++) {
-        f = strtok_r(fbs[x], ":", &saveptr2);
-        int userId = atoi(f);
+        char *token = strtok_r(fbs[x], ":", &saveptr2);
+        char *username = (char*) malloc(strlen(token) + 1);
+        strcpy(username, token);
+        username[strlen(token)] = '\0';
         char *msg = strtok_r(NULL, ":", &saveptr2);
-        feedbacks[x] = new Feedback(userId, msg);
+        feedbacks[x] = new Feedback(username, msg);
     }
 
     // Delete the fbs variable from memory
@@ -59,3 +61,8 @@ Feedback** Feedback::asFeedback(char *body){
     feedbacks[feedbacksCount] = NULL;
     return feedbacks; //feedbacks
 }
+
+Feedback::~Feedback() {
+  free(username);
+}
+
