@@ -5,9 +5,13 @@
 SoftwareSerial espSerial(3, 2);
 WiFiEspClient client;
 
-// "Maria y Dawlin iPhone", "DA@190_MCMS3_90"
-const char WIFI_SSID[] PROGMEM = "Maria y Dawlin iPhone";
-const char WIFI_PASS[] PROGMEM = "DA@190_MCMS3_90";
+// "Maria y Dawlin iPhone", "DA@190_MCMS3_90", 22, 16
+// "StudentCom" , "", 16, 0
+const char WIFI_SSID[] PROGMEM = "StudentCom";
+const char WIFI_PASS[] PROGMEM = "";
+
+const int WIFI_SSID_LENGTH = 16;
+const int WIFI_PASS_ILENGTH = 0;
 
 const char HTTP_METHOD[]    PROGMEM = "GET ";
 const char HTTP_VERSION[]   PROGMEM = " HTTP/1.1";
@@ -30,13 +34,13 @@ void ConnMgr::setup(){
 }
 
 void ConnMgr::connect() {
-    char ssidBuffer[22];
-    char passBuffer[16];
+    char ssidBuffer[WIFI_SSID_LENGTH];
+    char passBuffer[WIFI_PASS_ILENGTH];
 
     strcpy_P(ssidBuffer, (char*) pgm_read_word( &WIFI[0] ));
     strcpy_P(passBuffer, (char*) pgm_read_word( &WIFI[1] ));
 
-    mLcd.log(F("Connecting to"), F("WiFi..."), false);
+    mLcd.log(F("Connecting WIFI"));
     if (WiFi.status() != WL_NO_SHIELD) {
       while (WiFi.status() != WL_CONNECTED) {
         WiFi.begin(ssidBuffer, passBuffer);
@@ -113,10 +117,7 @@ char* ConnMgr::loop() {
     while (requestDone && client.available()) {
       currentChar = (char) client.read();
       if (currentChar == '\n') {
-        if (line.indexOf(bodyPreffix) > -1) {
-          Serial.print(F("LINE::: "));
-          Serial.println(line);
-
+        if (line.indexOf(bodyPreffix) > -1) {          
           gotTheLine = true;
         } else {
           line = "";
@@ -140,16 +141,20 @@ char* ConnMgr::loop() {
     
     const char *cLine = line.c_str();
     if (gotTheLine && strlen(cLine) > 0) {
-      char *ret = (char*) malloc(strlen(cLine) - 10 + 1);
+      char *ret = (char*) malloc((strlen(cLine) - 10 + 1));
       if (!ret) {
         return NULL;
       }
-
+      
       for (int i = 10; i < strlen(cLine); i++) {
-        ret[i] = cLine[i];
+        ret[i - 10] = cLine[i];        
       }
 
-      ret[strlen(cLine)] = '\0';
+      ret[strlen(cLine) - 10] = '\0';
+
+      Serial.print(F("ret::: "));
+      Serial.println(line);
+
       return ret;
     }
 
