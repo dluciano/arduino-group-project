@@ -99,34 +99,89 @@ void ConnMgr::get(char *server, char *path, int port){
     }
 }
 
+const char BODY_PREFIX[] PROGMEM = "FB_X_R => ";
+const char* const CONFIG[] PROGMEM = { BODY_PREFIX };
+
 char* ConnMgr::loop() {
+    char bodyPreffix[11];
+    strcpy_P(bodyPreffix, (char*) pgm_read_word( &CONFIG[0] ));
+    bodyPreffix[10] = '\0';
+
+    String line = "";
+    char currentChar;
+
     // if there are incoming bytes available
     // from the server, read them and print them
-    while (requestDone && client.available()) {      
-      msg.concat((char) client.read());
+    while (requestDone && client.available()) {
+      currentChar = (char) client.read();
+ 
+      if (currentChar == '\n') {
+        if (line.indexOf(bodyPreffix) > -1) {
+          break;
+        }
+
+        line = "";
+      } else if (currentChar != '\r') {
+        line.concat(currentChar);
+      }
     }
-    
+
     // // if the server's disconnected, stop the client
-    if (requestDone && !client.connected()) {      
+    if (requestDone && !client.connected()) {
+      Serial.println();
       Serial.println(F("Disconnecting from server..."));
       client.stop();
       Serial.println(F("Disconnected from server..."));
-      Serial.println("-------");
-      requestDone = false;     
+      requestDone = false;
+    }
 
-      String body = msg.substring(msg.indexOf("\n\r\n") + 3);     
-      int bLength = body.length();
-      msg = "";
+    
+    const char *cLine = line.c_str();
+    if (line.indexOf(bodyPreffix) > -1 && strlen(cLine) > 0) {
+      char *ret = (char) malloc(strlen(cLine) - 10 + 1);
+      if (!ret) {
+        return NULL;
+      }
 
-      char* ret = new char[strlen(bLength) + 1];
-      strcpy(ret, body.c_str());
+      for (int i = 10; i < strlen(cLine); i++) {
+        ret[i] = cLine[i];
+      }
 
-      Serial.println("BODY CONTENT: ");
-      Serial.print(ret);
-      Serial.println("-----------");
-
-      return ret;//CHANGE THISSSSS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! This should return ret          
+      ret[strlen(cLine)] = '\0';
+      return ret;
     }
 
     return NULL;
 }
+
+// char* ConnMgr::loop() {
+//     // if there are incoming bytes available
+//     // from the server, read them and print them
+//     while (requestDone && client.available()) {      
+//       msg.concat((char) client.read());
+//     }
+    
+//     // // if the server's disconnected, stop the client
+//     if (requestDone && !client.connected()) {      
+//       Serial.println(F("Disconnecting from server..."));
+//       client.stop();
+//       Serial.println(F("Disconnected from server..."));
+//       Serial.println("-------");
+//       requestDone = false;     
+
+//       String body = msg.substring(msg.indexOf("\n\r\n") + 3);     
+//       int bLength = body.length();
+//       msg = "";
+
+//       char* ret = new char[bLength + 1];
+//       strcpy(ret, body.c_str());
+
+//       Serial.println("BODY CONTENT: ");
+//       Serial.print(ret);
+//       Serial.println("-----------");
+
+//       return ret;          
+//     }
+
+//     return NULL;
+// }
