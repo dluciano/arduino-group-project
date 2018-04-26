@@ -122,7 +122,7 @@ char* ConnMgr::loop() {
 
     const char *cLine = line.c_str();
     if (strlen(cLine) > 0) {
-      char *ret = (char*) malloc(strlen(cLine));
+      char *ret = (char*) malloc(strlen(cLine) + 1);
       if (!ret) {
         return NULL;
       }
@@ -131,6 +131,7 @@ char* ConnMgr::loop() {
         ret[i] = cLine[i];
       }
 
+      ret[strlen(cLine)] = '\0';
       return ret;
     }
 

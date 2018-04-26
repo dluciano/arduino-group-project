@@ -19,9 +19,9 @@ unsigned long long prev = -REFRESH_RATE;
 ConnMgr conn;
 OperMgr op;
 
-
 void setup() { 
   Serial.begin(9600);
+  mLcd.setup();
   conn.setup(); 
   op.setup();
   mLcd.log(F("Ready. Waiting"));
