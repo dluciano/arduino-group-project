@@ -17,5 +17,7 @@ class ConnMgr {
 
   private:
   bool connected = false;
-  bool requestDone = false;
+  bool requestDone = false;  
+
+  String msg = String("");
 };
